@@ -11,3 +11,4 @@ Licensed under GNU Lesser General Public License v3.0
 from deeplabcutcore import DEBUG
 from deeplabcutcore.generate_training_dataset.frame_extraction import *
 from deeplabcutcore.generate_training_dataset.trainingsetmanipulation import *
+from deeplabcutcore.generate_training_dataset.trainingsetmanipulation import check_labels_inference

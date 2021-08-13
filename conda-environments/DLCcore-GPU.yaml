@@ -16,8 +16,7 @@ name: DLCcore-GPU
 dependencies:
   - python=3.7
   - pip
-  - tensorflow-gpu
-  - cudnn=7
+  - cudnn
   - wxpython<4.1.0
   - jupyter
   - nb_conda

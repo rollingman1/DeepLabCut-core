@@ -126,6 +126,87 @@ def convertcsv2h5(config, userfeedback=True, scorer=None):
         except FileNotFoundError:
             print("Attention:", folder, "does not appear to have labeled data!")
 
+def convertcsv2h5_module(config, userfeedback=True, scorer=None):
+    """
+    Convert (image) annotation files in folder labeled-data from csv to h5.
+    This function allows the user to manually edit the csv (e.g. to correct the scorer name and then convert it into hdf format).
+    WARNING: conversion might corrupt the data.
+
+    config : string
+        Full path of the config.yaml file as a string.
+
+    folders: 폴더 경로
+
+    userfeedback: bool, optional
+        If true the user will be asked specifically for each folder in labeled-data if the containing csv shall be converted to hdf format.
+
+    scorer: string, optional
+        If a string is given, then the scorer/annotator in all csv and hdf files that are changed, will be overwritten with this name.
+
+    Examples
+    --------
+    Convert csv annotation files for reaching-task project into hdf.
+    >>> deeplabcutcore.convertcsv2h5('/analysis/project/reaching-task/config.yaml')
+
+    --------
+    Convert csv annotation files for reaching-task project into hdf while changing the scorer/annotator in all annotation files to Albert!
+    >>> deeplabcutcore.convertcsv2h5('/analysis/project/reaching-task/config.yaml',scorer='Albert')
+    --------
+    """
+    import glob
+    cfg = auxiliaryfunctions.read_config(config)
+    if scorer == None:
+        scorer = cfg["scorer"]
+
+    folders = glob.glob(os.path.join(cfg['project_path'],'labeled-data','*'))
+    print(folders[0])
+
+    for folder in folders:
+        try:
+            if userfeedback == True:
+                print("Do you want to convert the csv file in folder:", folder, "?")
+                askuser = input("yes/no")
+            else:
+                askuser = "yes"
+
+            if (
+                askuser == "y" or askuser == "yes" or askuser == "Ja" or askuser == "ha"
+            ):  # multilanguage support :)
+                fn = os.path.join(
+                    str(folder), "CollectedData_" + cfg["scorer"] + ".csv"
+                )
+                data = pd.read_csv(fn)
+
+                # nlines,numcolumns=data.shape
+
+                orderofbpincsv = list(data.values[0, 1:-1:2])
+                imageindex = list(data.values[2:, 0])
+
+                # assert(len(orderofbpincsv)==len(cfg['bodyparts']))
+                print(orderofbpincsv)
+                #print(cfg["bodyparts"])
+
+                # TODO: test len of images vs. len of imagenames for another sanity check
+
+                index = pd.MultiIndex.from_product(
+                    [[scorer], orderofbpincsv, ["x", "y"]],
+                    names=["scorer", "bodyparts", "coords"],
+                )
+                frame = pd.DataFrame(
+                    np.array(data.values[2:, 1:], dtype=float),
+                    columns=index,
+                    index=imageindex,
+                )
+
+                frame.to_hdf(
+                    os.path.join(str(folder), "CollectedData_" + cfg["scorer"] + ".h5"),
+                    key="df_with_missing",
+                    mode="w",
+                )
+                frame.to_csv(fn)
+        except FileNotFoundError:
+            print("Attention:", folder, "does not appear to have labeled data!")
+
 
 def analyze_videos_converth5_to_csv(videopath, videotype=".avi"):
     """

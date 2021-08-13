@@ -67,6 +67,9 @@ def create_new_project(
         working_directory = "."
     wd = Path(working_directory).resolve()
     project_name = "{pn}-{exp}-{date}".format(pn=project, exp=experimenter, date=date)
+    # project_name = "{pn}-{exp}-{date1}".format(pn=project, exp=experimenter, date1="mirror")
+    print("d에베어민어")
+
     project_path = wd / project_name
 
     # Create project and sub-directories
@@ -98,12 +101,12 @@ def create_new_project(
                 )
             else:
                 videos = vids
-                print(
-                    len(vids_in_dir),
-                    " videos from the directory",
-                    i,
-                    "were added to the project.",
-                )
+                # print(
+                #     len(vids_in_dir),
+                #     " videos from the directory",
+                #     i,
+                #     "were added to the project.",
+                # )
         else:
             if os.path.isfile(i):
                 vids = vids + [i]
@@ -138,7 +141,7 @@ def create_new_project(
                 import subprocess
 
                 subprocess.check_call("mklink %s %s" % (dst, src), shell=True)
-            print("Created the symlink of {} to {}".format(src, dst))
+            # print("Created the symlink of {} to {}".format(src, dst))
             videos = destinations
 
     if copy_videos == True:
@@ -149,7 +152,7 @@ def create_new_project(
     # adds the video list to the config.yaml file
     video_sets = {}
     for video in videos:
-        print(video)
+        # print(video)
         try:
             # For windows os.path.realpath does not work and does not link to the real video. [old: rel_video_path = os.path.realpath(video)]
             rel_video_path = str(Path.resolve(Path(video)))

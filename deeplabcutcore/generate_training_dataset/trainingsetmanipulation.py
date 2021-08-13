@@ -350,12 +350,66 @@ def check_labels(config, Labels=["+", ".", "x"], scale=1):
         "If all the labels are ok, then use the function 'create_training_dataset' to create the training dataset!"
     )
 
+def check_labels_inference(config, Labels=["+", ".", "x"], scale=1):
+    """
+    'inference-data'\n CollectedData_{scorer}.h5\n
+    Double check if the labels were at correct locations and stored in a proper file format.\n
+    This creates a new subdirectory for each video under the 'inference-data' and all the frames are plotted with the labels.\n
+    Make sure that these labels are fine.
+
+    Parameter
+    ----------
+    config : string
+        Full path of the config.yaml file as a string.
+
+    Labels: List of at least 3 matplotlib markers. The first one will be used to indicate the human ground truth location (Default: +)
+
+    scale : float, default =1
+        Change the relative size of the output images.
+
+    Example
+    --------
+    for labeling the frames
+    >>> deeplabcutcore.check_labels_inference('/analysis/project/reaching-task/config.yaml')
+    --------
+    """
+    cfg = auxiliaryfunctions.read_config(config)
+    videos = cfg["video_sets"].keys()
+    video_names = [Path(i).stem for i in videos]
+
+    # plotting parameters:
+    cc = 0  # label index / here only 0, for human labeler
+    Colorscheme = get_cmap(len(cfg["bodyparts"]), cfg["colormap"])
+
+    # folders = [Path(config).parent / 'labeled-data' /Path(i) for i in video_names]
+    folders = [
+        os.path.join(cfg["project_path"], "inference-data", str(Path(i)))
+        for i in video_names
+    ]
+    print("Creating images with labels by %s." % cfg["scorer"])
+    for folder in folders:
+        try:
+            DataCombined = pd.read_hdf(
+                os.path.join(str(folder), "CollectedData_" + cfg["scorer"] + ".h5"),
+                "df_with_missing",
+            )
+            MakeLabeledPlots(folder, DataCombined, cfg, Labels, Colorscheme, cc, scale)
+        except FileNotFoundError:
+            print("Attention:", folder, "does not appear to have labeled data!")
+
+    print(
+        "If all the labels are ok, then use the function 'create_training_dataset' to create the training dataset!"
+    )
+
 
 def MakeLabeledPlots(folder, DataCombined, cfg, Labels, Colorscheme, cc, scale):
     tmpfolder = str(folder) + "_labeled"
     auxiliaryfunctions.attempttomakefolder(tmpfolder)
     for index, imagename in enumerate(DataCombined.index.values):
-        image = io.imread(os.path.join(cfg["project_path"], imagename))
+        try:
+            image = io.imread(os.path.join(cfg["project_path"], imagename))
+        except FileNotFoundError:
+            print("D여끼")
         plt.axis("off")
 
         if np.ndim(image) == 2:
@@ -370,7 +424,7 @@ def MakeLabeledPlots(folder, DataCombined, cfg, Labels, Colorscheme, cc, scale):
 
         plt.imshow(image, "gray")
         if index == 0:
-            print("They are stored in the following folder: %s." % tmpfolder)  # folder)
+            print("They are stored in the followiFng folder: %s." % tmpfolder)  # folder)
 
         for c, bp in enumerate(cfg["bodyparts"]):
             plt.plot(
@@ -438,8 +492,11 @@ def merge_annotateddatasets(cfg, project_path, trainingsetfolder_full, windows2l
     """
     AnnotationData = []
     data_path = Path(os.path.join(project_path, "labeled-data"))
-    videos = cfg["video_sets"].keys()
-    video_names = [Path(i).stem for i in videos]
+    ##TODO 비디오 CONFIG 파일 독립적으로 바꾸기
+    from os import listdir
+    # videos = cfg["video_sets"].keys()
+    # video_names = [Path(i).stem for i in videos]
+    video_names = listdir(data_path)
     for i in video_names:
         filename = os.path.join(data_path / i, f'CollectedData_{cfg["scorer"]}.h5')
         try:

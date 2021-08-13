@@ -42,6 +42,7 @@ from deeplabcutcore.utils import (
     plot_trajectories,
     auxiliaryfunctions,
     convertcsv2h5,
+    convertcsv2h5_module,
     convertannotationdata_fromwindows2unixstyle,
     analyze_videos_converth5_to_csv,
     auxfun_videos,
