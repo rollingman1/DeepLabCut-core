@@ -61,6 +61,7 @@ from deeplabcutcore.pose_estimation_tensorflow import (
 from deeplabcutcore.pose_estimation_tensorflow import (
     analyze_videos,
     analyze_time_lapse_frames,
+    analyze_time_lapse_frames_aihub,
 )
 from deeplabcutcore.pose_estimation_tensorflow import export_model
 
